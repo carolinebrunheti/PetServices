@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import br.com.petServices.dtos.CadastroDonoDTO;
 import br.com.petServices.dtos.CadastroDonoResponse;
 import br.com.petServices.entities.CadastroDonoEntity;
+import br.com.petServices.exceptions.RecursoNaoEncontradoException;
 import br.com.petServices.repositories.CadastroDonoRepository;
 import br.com.petServices.services.enums.Role;
 import br.com.petServices.services.enums.evento.TipoEvento;
@@ -33,7 +34,7 @@ public class CadastroDonoService {
 
     public CadastroDonoResponse buscarPorId(Integer id){
         var dono = cadastroDonoRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Dono não encontrado com o ID: " + id));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Dono não encontrado com o ID: " + id));
         return new CadastroDonoResponse(dono.getId(), dono.getNome(), dono.getEmail(), dono.getRole());
     }
 
@@ -57,7 +58,7 @@ public class CadastroDonoService {
 
     public CadastroDonoResponse atualizar(CadastroDonoDTO request, Integer id){
         CadastroDonoEntity dono = cadastroDonoRepository.findById(id)
-        .orElseThrow(()-> new RuntimeException("Dono nao encontrado"));
+        .orElseThrow(()-> new RecursoNaoEncontradoException("Dono nao encontrado"));
         dono.setNome(request.nome());
         dono.setEmail(request.email());
 
@@ -66,5 +67,16 @@ public class CadastroDonoService {
             salvo.getId(), salvo.getNome(),salvo.getEmail(), salvo.getRole()
         ));
          return new CadastroDonoResponse(salvo.getId(), salvo.getNome(), salvo.getEmail(), salvo.getRole());
+    }
+
+    //remover
+
+    public void removerDono(Integer id){
+        CadastroDonoEntity dono = cadastroDonoRepository.findById(id)
+        .orElseThrow(() -> new RecursoNaoEncontradoException("Donoo nao encontrado"));
+        cadastroDonoRepository.delete(dono);
+        usuarioEventProducer.publicar(UsuarioEvent.of(TipoEvento.REMOVIDO,
+            dono.getId(),dono.getNome(), dono.getEmail(), dono.getRole()
+        ));
     }
 }
