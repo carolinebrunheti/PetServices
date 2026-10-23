@@ -33,6 +33,11 @@ public class CadastroPetService {
         .map(e -> new CadastroPetResponse(e.getId(), e.getNome(), e.getDataNascimento(), e.getRaca(), e.getEspecie(), e.getDono().getId())).toList();
     }
 
+    public List<CadastroPetResponse> buscarPorDono(Integer donoId){
+        return cadastroPetRepository.findByDonoId(donoId).stream()
+        .map(e -> new CadastroPetResponse(e.getId(), e.getNome(), e.getDataNascimento(), e.getRaca(), e.getEspecie(), e.getDono().getId())).toList();
+    }
+
     public CadastroPetResponse buscarPorId(Integer id){
         var pet = cadastroPetRepository.findById(id)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Pet não encontrado com o ID: " + id));

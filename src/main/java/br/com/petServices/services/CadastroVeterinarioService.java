@@ -1,11 +1,13 @@
 package br.com.petServices.services;
 import java.util.List;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import br.com.petServices.dtos.CadastroVeterinarioDTO;
 import br.com.petServices.dtos.CadastroVeterinarioResponse;
 import br.com.petServices.entities.CadastroVeterinarioEntity;
+import br.com.petServices.exceptions.ConflitoException;
 import br.com.petServices.exceptions.RecursoNaoEncontradoException;
 import br.com.petServices.repositories.CadastroVeterinarioRepository;
 import br.com.petServices.services.enums.Role;
@@ -18,12 +20,14 @@ public class CadastroVeterinarioService {
     
     private final CadastroVeterinarioRepository cadastroVeterinarioRepository;
     private final UsuarioEventProducer usuarioEventProducer;
+    private final PasswordEncoder passwordEncoder;
 
 
     public CadastroVeterinarioService(CadastroVeterinarioRepository cadastroVeterinarioRepository,
-            UsuarioEventProducer usuarioEventProducer) {
+            UsuarioEventProducer usuarioEventProducer, PasswordEncoder passwordEncoder) {
         this.cadastroVeterinarioRepository = cadastroVeterinarioRepository;
         this.usuarioEventProducer = usuarioEventProducer;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<CadastroVeterinarioResponse> buscarTodos(){
@@ -38,12 +42,16 @@ public class CadastroVeterinarioService {
     }
 
     public CadastroVeterinarioResponse salvar(CadastroVeterinarioDTO request){
+        if (cadastroVeterinarioRepository.existsByEmail(request.email())) {
+            throw new ConflitoException("Email ja cadastrado");
+        }
+
         CadastroVeterinarioEntity veterinario = new CadastroVeterinarioEntity();
         veterinario.setNome(request.nome());
         veterinario.setEmail(request.email());
         veterinario.setEspecialidade(request.especialidade());
         veterinario.setCrm(request.crm());
-        veterinario.setSenha(request.senha());
+        veterinario.setSenha(passwordEncoder.encode(request.senha()));
         veterinario.setRole(Role.VETERINARIO);
 
         CadastroVeterinarioEntity salvo = cadastroVeterinarioRepository.save(veterinario);
@@ -71,7 +79,7 @@ public class CadastroVeterinarioService {
         veterinario.setEmail(request.email());
         veterinario.setCrm(request.crm());
         veterinario.setEspecialidade(request.especialidade());
-        veterinario.setSenha(request.senha());
+        veterinario.setSenha(passwordEncoder.encode(request.senha()));
 
         CadastroVeterinarioEntity salvo = cadastroVeterinarioRepository.save(veterinario);
         usuarioEventProducer.publicar(UsuarioEvent.of(TipoEvento.ATUALIZADO, salvo.getId(), salvo.getNome(), salvo.getEmail(), salvo.getRole()));

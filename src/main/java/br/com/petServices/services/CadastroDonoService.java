@@ -1,11 +1,13 @@
 package br.com.petServices.services;
 import java.util.List;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import br.com.petServices.dtos.CadastroDonoDTO;
 import br.com.petServices.dtos.CadastroDonoResponse;
 import br.com.petServices.entities.CadastroDonoEntity;
+import br.com.petServices.exceptions.ConflitoException;
 import br.com.petServices.exceptions.RecursoNaoEncontradoException;
 import br.com.petServices.repositories.CadastroDonoRepository;
 import br.com.petServices.services.enums.Role;
@@ -18,13 +20,15 @@ public class CadastroDonoService {
 
     private final CadastroDonoRepository cadastroDonoRepository;
     private final UsuarioEventProducer usuarioEventProducer;
+    private final PasswordEncoder passwordEncoder;
 
 
     
     public CadastroDonoService(CadastroDonoRepository cadastroDonoRepository,
-            UsuarioEventProducer usuarioEventProducer) {
+            UsuarioEventProducer usuarioEventProducer, PasswordEncoder passwordEncoder) {
         this.cadastroDonoRepository = cadastroDonoRepository;
         this.usuarioEventProducer = usuarioEventProducer;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<CadastroDonoResponse> buscarTodos(){
@@ -41,10 +45,13 @@ public class CadastroDonoService {
     //kafka producer
 
     public CadastroDonoResponse cadastrar(CadastroDonoDTO request){
+        if (cadastroDonoRepository.existsByEmail(request.email())) {
+            throw new ConflitoException("Email ja cadastrado");
+        }
         CadastroDonoEntity dono = new CadastroDonoEntity();
         dono.setNome(request.nome());
         dono.setEmail(request.email());
-        dono.setSenha(request.senha());
+        dono.setSenha(passwordEncoder.encode(request.senha()));
         dono.setRole(Role.TUTOR);
 
         CadastroDonoEntity salvo = cadastroDonoRepository.save(dono);

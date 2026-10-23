@@ -1,6 +1,7 @@
 package br.com.petServices.services;
 import java.util.List;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import br.com.petServices.dtos.CadastroAdminDTO;
@@ -21,12 +22,15 @@ public class CadastroAdminService {
 
     private final UsuarioEventProducer usuarioEventProducer;
 
+    private final PasswordEncoder passwordEncoder;
+
     
 
    public CadastroAdminService(CadastroAdminRepository cadastroAdminRepository,
-        UsuarioEventProducer usuarioEventProducer) {
+        UsuarioEventProducer usuarioEventProducer, PasswordEncoder passwordEncoder) {
     this.cadastroAdminRepository = cadastroAdminRepository;
     this.usuarioEventProducer = usuarioEventProducer;
+    this.passwordEncoder = passwordEncoder;
 }
 
         public List<CadastroAdminResponse> buscarTodos(){
@@ -44,8 +48,8 @@ public class CadastroAdminService {
         CadastroAdminEntity admin = new CadastroAdminEntity();
         admin.setNome(request.nome());
         admin.setEmail(request.email());
-        admin.setSenha(request.senha());
-        admin.setRole(Role.VETERINARIO);
+        admin.setSenha(passwordEncoder.encode(request.senha()));
+        admin.setRole(Role.ADMIN);
 
 
         CadastroAdminEntity salvo = cadastroAdminRepository.save(admin);
@@ -67,7 +71,7 @@ public class CadastroAdminService {
         .orElseThrow(() -> new RecursoNaoEncontradoException("Admin nao encontrado"));
         admin.setNome(request.nome());
         admin.setEmail(request.email());
-        admin.setSenha(request.senha());
+        admin.setSenha(passwordEncoder.encode(request.senha()));
         CadastroAdminEntity salvo = cadastroAdminRepository.save(admin);
         usuarioEventProducer.publicar(UsuarioEvent.of(TipoEvento.ATUALIZADO, salvo.getId(), salvo.getNome(), salvo.getEmail(), salvo.getRole()));
 

@@ -1,0 +1,9 @@
+# segredos nunca entram na imagem
+.env
+.env.*
+!.env.example
+target/
+.git/
+.idea/
+.vscode/
+*.iml

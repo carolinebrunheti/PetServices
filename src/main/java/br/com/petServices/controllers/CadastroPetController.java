@@ -3,6 +3,9 @@ package br.com.petServices.controllers;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import br.com.petServices.dtos.CadastroPetDTO;
 import br.com.petServices.dtos.CadastroPetResponse;
+import br.com.petServices.security.UsuarioLogado;
 import br.com.petServices.services.CadastroPetService;
 import jakarta.validation.Valid;
 
@@ -26,14 +30,24 @@ public class CadastroPetController {
         this.cadastroPetService = cadastroPetService;
     }
 
+    // o tutor so enxerga os proprios pets; os outros perfis veem todos
     @GetMapping()
-    public ResponseEntity<List<CadastroPetResponse>> buscarTodos(){
+    public ResponseEntity<List<CadastroPetResponse>> buscarTodos(@AuthenticationPrincipal Jwt jwt){
+        UsuarioLogado usuario = UsuarioLogado.de(jwt);
+        if (usuario.isTutor()) {
+            return ResponseEntity.ok(cadastroPetService.buscarPorDono(usuario.id()));
+        }
         return ResponseEntity.ok(cadastroPetService.buscarTodos());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CadastroPetResponse> buscarPorId(@PathVariable Integer id){
-        return ResponseEntity.ok(cadastroPetService.buscarPorId(id));
+    public ResponseEntity<CadastroPetResponse> buscarPorId(@PathVariable Integer id, @AuthenticationPrincipal Jwt jwt){
+        UsuarioLogado usuario = UsuarioLogado.de(jwt);
+        CadastroPetResponse pet = cadastroPetService.buscarPorId(id);
+        if (usuario.isTutor() && !pet.donoId().equals(usuario.id())) {
+            throw new AccessDeniedException("Pet de outro tutor");
+        }
+        return ResponseEntity.ok(pet);
     }
 
     @PostMapping()

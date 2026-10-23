@@ -1,6 +1,7 @@
 package br.com.petServices.services;
 
 import java.util.List;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import br.com.petServices.services.enums.evento.TipoEvento;
 import br.com.petServices.services.enums.evento.UsuarioEvent;
@@ -20,11 +21,14 @@ public class CadastroAtendenteService {
 
     private final UsuarioEventProducer usuarioEventProducer;
 
+    private final PasswordEncoder passwordEncoder;
+
 
     public CadastroAtendenteService(CadastroAtendenteRepository cadastroAtendenteRepository,
-            UsuarioEventProducer usuarioEventProducer) {
+            UsuarioEventProducer usuarioEventProducer, PasswordEncoder passwordEncoder) {
         this.cadastroAtendenteRepository = cadastroAtendenteRepository;
         this.usuarioEventProducer = usuarioEventProducer;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<CadastroAtendenteResponse> buscarTodos(){
@@ -42,7 +46,7 @@ public class CadastroAtendenteService {
         CadastroAtendenteEntity atendente = new CadastroAtendenteEntity();
         atendente.setNome(request.nome());
         atendente.setEmail(request.email());
-        atendente.setSenha(request.senha());
+        atendente.setSenha(passwordEncoder.encode(request.senha()));
         atendente.setRole(Role.ATENDENTE);
 
         CadastroAtendenteEntity salvo = cadastroAtendenteRepository.save(atendente);
@@ -64,7 +68,7 @@ public class CadastroAtendenteService {
             .orElseThrow(() -> new RecursoNaoEncontradoException("Atendente nao encontrada"));
             atendente.setNome(request.nome());
             atendente.setEmail(request.email());
-            atendente.setSenha(request.senha());
+            atendente.setSenha(passwordEncoder.encode(request.senha()));
             
             CadastroAtendenteEntity salvo = cadastroAtendenteRepository.save(atendente);
             usuarioEventProducer.publicar(UsuarioEvent.of(TipoEvento.ATUALIZADO, salvo.getId(), salvo.getNome(), salvo.getEmail(), salvo.getRole()));
