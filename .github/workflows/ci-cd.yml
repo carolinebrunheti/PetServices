@@ -1,0 +1,77 @@
+# CI: roda os testes em todo push e pull request.
+# CD: na main, gera a imagem, envia ao ACR e troca a versao no repositorio
+# PetServicesK8s; o workflow de la faz o deploy no AKS.
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  ACR: acrpetservicesf3c82b
+  IMAGEM: petservices
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      # o *ApplicationTests sobe a aplicacao inteira e precisa de Postgres e
+      # Kafka de verdade; os demais testes usam mocks
+      - name: Testes
+        run: ./mvnw -B test -Dtest='!*ApplicationTests' -Dsurefire.failIfNoSpecifiedTests=false
+
+  publicar:
+    needs: testes
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # token OIDC para o login na Azure
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      # a versao da imagem e o inicio do id do commit: da para saber
+      # exatamente qual codigo esta rodando no cluster
+      - name: Build e push da imagem
+        run: |
+          TAG=${GITHUB_SHA::7}
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          az acr login -n "$ACR"
+          docker build -t "$ACR.azurecr.io/$IMAGEM:$TAG" .
+          docker push "$ACR.azurecr.io/$IMAGEM:$TAG"
+
+      - name: Trocar a versao no PetServicesK8s
+        env:
+          TOKEN: ${{ secrets.K8S_REPO_TOKEN }}
+        run: |
+          git clone "https://x-access-token:$TOKEN@github.com/carolinebrunheti/PetServicesK8s.git" k8s
+          cd k8s
+          yq -i '(.images[] | select(.name == env(IMAGEM)) | .newTag) = strenv(TAG)' aks/kustomization.yaml
+          git diff --quiet && { echo "versao ja estava no ar"; exit 0; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "deploy: $IMAGEM $TAG"
+          # se outra API publicou ao mesmo tempo, junta e tenta de novo
+          for tentativa in 1 2 3; do
+            git push && exit 0
+            git pull --rebase
+          done
+          exit 1
