@@ -1,6 +1,8 @@
 package br.com.petServices.controllers;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -32,12 +34,13 @@ public class CadastroPetController {
 
     // o tutor so enxerga os proprios pets; os outros perfis veem todos
     @GetMapping()
-    public ResponseEntity<List<CadastroPetResponse>> buscarTodos(@AuthenticationPrincipal Jwt jwt){
+    public ResponseEntity<PagedModel<CadastroPetResponse>> buscarTodos(@AuthenticationPrincipal Jwt jwt,
+            @PageableDefault(size = 10, sort = "id") Pageable pageable){
         UsuarioLogado usuario = UsuarioLogado.de(jwt);
         if (usuario.isTutor()) {
-            return ResponseEntity.ok(cadastroPetService.buscarPorDono(usuario.id()));
+            return ResponseEntity.ok(new PagedModel<>(cadastroPetService.buscarPorDono(usuario.id(), pageable)));
         }
-        return ResponseEntity.ok(cadastroPetService.buscarTodos());
+        return ResponseEntity.ok(new PagedModel<>(cadastroPetService.buscarTodos(pageable)));
     }
 
     @GetMapping("/{id}")

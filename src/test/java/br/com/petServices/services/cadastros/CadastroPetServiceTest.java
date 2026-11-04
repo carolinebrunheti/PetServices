@@ -20,6 +20,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import br.com.petServices.dtos.CadastroPetDTO;
 import br.com.petServices.dtos.CadastroPetResponse;
@@ -113,15 +117,16 @@ class CadastroPetServiceTest {
     @DisplayName("buscarTodos: deve retornar a lista de pets com o id do dono")
     void buscarTodos() {
         // arrange
-        when(cadastroPetRepository.findAll()).thenReturn(List.of(petSalvo()));
+        Pageable pageable = PageRequest.of(0, 10);
+        when(cadastroPetRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(petSalvo())));
 
         // act
-        List<CadastroPetResponse> resposta = cadastroPetService.buscarTodos();
+        Page<CadastroPetResponse> resposta = cadastroPetService.buscarTodos(pageable);
 
         // assert
-        assertEquals(1, resposta.size());
-        assertEquals("Rex", resposta.get(0).nome());
-        assertEquals(1, resposta.get(0).donoId());
+        assertEquals(1, resposta.getContent().size());
+        assertEquals("Rex", resposta.getContent().get(0).nome());
+        assertEquals(1, resposta.getContent().get(0).donoId());
     }
 
     @Test

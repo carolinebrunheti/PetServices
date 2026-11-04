@@ -18,6 +18,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import br.com.petServices.services.enums.Role;
 import br.com.petServices.services.enums.evento.TipoEvento;
@@ -142,12 +146,14 @@ class CadastroDonoServiceTest {
     @Test 
     void buscarLista(){
 
-        when(cadastroDonoRepository.findAll()).thenReturn(List.of(donoSalvo()));
+        Pageable pageable = PageRequest.of(0, 10);
 
-        List<CadastroDonoResponse> resposta = cadastroDonoService.buscarTodos();
+        when(cadastroDonoRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(donoSalvo())));
 
-        assertEquals(1, resposta.size());
-        assertEquals("xuxubeleza@hotmail.com", resposta.get(0).email());
+        Page<CadastroDonoResponse> resposta = cadastroDonoService.buscarTodos(pageable);
+
+        assertEquals(1, resposta.getContent().size());
+        assertEquals("xuxubeleza@hotmail.com", resposta.getContent().get(0).email());
 
     }
 

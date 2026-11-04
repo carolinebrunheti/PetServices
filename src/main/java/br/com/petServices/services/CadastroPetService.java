@@ -1,6 +1,7 @@
 package br.com.petServices.services;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import br.com.petServices.dtos.CadastroPetDTO;
@@ -28,14 +29,14 @@ public class CadastroPetService {
         this.petEventProducer = petEventProducer;
     }
 
-    public List<CadastroPetResponse> buscarTodos(){
-        return cadastroPetRepository.findAll().stream()
-        .map(e -> new CadastroPetResponse(e.getId(), e.getNome(), e.getDataNascimento(), e.getRaca(), e.getEspecie(), e.getDono().getId())).toList();
+    public Page<CadastroPetResponse> buscarTodos(Pageable pageable){
+        return cadastroPetRepository.findAll(pageable)
+        .map(e -> new CadastroPetResponse(e.getId(), e.getNome(), e.getDataNascimento(), e.getRaca(), e.getEspecie(), e.getDono().getId()));
     }
 
-    public List<CadastroPetResponse> buscarPorDono(Integer donoId){
-        return cadastroPetRepository.findByDonoId(donoId).stream()
-        .map(e -> new CadastroPetResponse(e.getId(), e.getNome(), e.getDataNascimento(), e.getRaca(), e.getEspecie(), e.getDono().getId())).toList();
+    public Page<CadastroPetResponse> buscarPorDono(Integer donoId, Pageable pageable){
+        return cadastroPetRepository.findByDonoId(donoId, pageable)
+        .map(e -> new CadastroPetResponse(e.getId(), e.getNome(), e.getDataNascimento(), e.getRaca(), e.getEspecie(), e.getDono().getId()));
     }
 
     public CadastroPetResponse buscarPorId(Integer id){

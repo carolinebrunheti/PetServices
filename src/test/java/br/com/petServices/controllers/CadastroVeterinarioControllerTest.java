@@ -115,7 +115,7 @@ class CadastroVeterinarioControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value(401));
 
-        verify(cadastroVeterinarioService, never()).buscarTodos();
+        verify(cadastroVeterinarioService, never()).buscarTodos(any());
     }
 
     @Test
@@ -125,7 +125,7 @@ class CadastroVeterinarioControllerTest {
                         .header("Authorization", "Bearer token-inventado"))
                 .andExpect(status().isUnauthorized());
 
-        verify(cadastroVeterinarioService, never()).buscarTodos();
+        verify(cadastroVeterinarioService, never()).buscarTodos(any());
     }
 
     @Test

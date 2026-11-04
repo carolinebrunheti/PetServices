@@ -1,6 +1,8 @@
 package br.com.petServices.controllers;
-import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,8 +30,8 @@ public class CadastroDonoController {
     }
     
     @GetMapping()
-    public ResponseEntity<List<CadastroDonoResponse>> buscarTodos(){
-        return ResponseEntity.ok(cadastroDonoService.buscarTodos());
+    public ResponseEntity<PagedModel<CadastroDonoResponse>> buscarTodos(@PageableDefault(size = 10, sort = "id") Pageable pageable){
+        return ResponseEntity.ok(new PagedModel<>(cadastroDonoService.buscarTodos(pageable)));
     }
 
     @GetMapping("/{id}")

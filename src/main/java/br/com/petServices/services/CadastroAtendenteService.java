@@ -1,6 +1,7 @@
 package br.com.petServices.services;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import br.com.petServices.services.enums.evento.TipoEvento;
@@ -31,9 +32,9 @@ public class CadastroAtendenteService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public List<CadastroAtendenteResponse> buscarTodos(){
-        return cadastroAtendenteRepository.findAll().stream()
-        .map(e -> new CadastroAtendenteResponse(e.getId(), e.getNome(), e.getEmail(), e.getRole())).toList();
+    public Page<CadastroAtendenteResponse> buscarTodos(Pageable pageable){
+        return cadastroAtendenteRepository.findAll(pageable)
+        .map(e -> new CadastroAtendenteResponse(e.getId(), e.getNome(), e.getEmail(), e.getRole()));
     }
 
     public CadastroAtendenteResponse buscarPorId(Integer id){

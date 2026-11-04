@@ -18,6 +18,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import br.com.petServices.dtos.CadastroAdminDTO;
 import br.com.petServices.dtos.CadastroAdminResponse;
@@ -85,14 +89,15 @@ class CadastroAdminServiceTest {
     @DisplayName("buscarTodos: deve retornar a lista de admins")
     void buscarTodos() {
         // arrange
-        when(cadastroAdminRepository.findAll()).thenReturn(List.of(adminSalvo()));
+        Pageable pageable = PageRequest.of(0, 10);
+        when(cadastroAdminRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(adminSalvo())));
 
         // act
-        List<CadastroAdminResponse> resposta = cadastroAdminService.buscarTodos();
+        Page<CadastroAdminResponse> resposta = cadastroAdminService.buscarTodos(pageable);
 
         // assert
-        assertEquals(1, resposta.size());
-        assertEquals("bia@admin.com", resposta.get(0).email());
+        assertEquals(1, resposta.getContent().size());
+        assertEquals("bia@admin.com", resposta.getContent().get(0).email());
     }
 
     @Test

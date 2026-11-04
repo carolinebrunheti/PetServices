@@ -18,6 +18,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import br.com.petServices.dtos.CadastroAtendenteDTO;
 import br.com.petServices.dtos.CadastroAtendenteResponse;
@@ -85,14 +89,15 @@ class CadastroAtendenteServiceTest {
     @DisplayName("buscarTodos: deve retornar a lista de atendentes")
     void buscarTodos() {
         // arrange
-        when(cadastroAtendenteRepository.findAll()).thenReturn(List.of(atendenteSalvo()));
+        Pageable pageable = PageRequest.of(0, 10);
+        when(cadastroAtendenteRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(atendenteSalvo())));
 
         // act
-        List<CadastroAtendenteResponse> resposta = cadastroAtendenteService.buscarTodos();
+        Page<CadastroAtendenteResponse> resposta = cadastroAtendenteService.buscarTodos(pageable);
 
         // assert
-        assertEquals(1, resposta.size());
-        assertEquals("carla@pet.com", resposta.get(0).email());
+        assertEquals(1, resposta.getContent().size());
+        assertEquals("carla@pet.com", resposta.getContent().get(0).email());
     }
 
     @Test

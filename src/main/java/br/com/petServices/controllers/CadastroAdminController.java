@@ -1,6 +1,8 @@
 package br.com.petServices.controllers;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,8 +29,8 @@ public class CadastroAdminController {
     }
     
     @GetMapping()
-    public ResponseEntity<List<CadastroAdminResponse>> buscarTodosAdmins(){
-        return ResponseEntity.ok(cadastroAdminService.buscarTodos());
+    public ResponseEntity<PagedModel<CadastroAdminResponse>> buscarTodosAdmins(@PageableDefault(size = 10, sort = "id") Pageable pageable){
+        return ResponseEntity.ok(new PagedModel<>(cadastroAdminService.buscarTodos(pageable)));
     }
 
     @GetMapping("/{id}")

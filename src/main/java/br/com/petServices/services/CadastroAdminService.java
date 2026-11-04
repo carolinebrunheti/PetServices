@@ -1,6 +1,7 @@
 package br.com.petServices.services;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,9 +34,9 @@ public class CadastroAdminService {
     this.passwordEncoder = passwordEncoder;
 }
 
-        public List<CadastroAdminResponse> buscarTodos(){
-        return cadastroAdminRepository.findAll().stream()
-        .map(e -> new CadastroAdminResponse(e.getId(), e.getNome(), e.getEmail(), e.getRole())).toList();
+        public Page<CadastroAdminResponse> buscarTodos(Pageable pageable){
+        return cadastroAdminRepository.findAll(pageable)
+        .map(e -> new CadastroAdminResponse(e.getId(), e.getNome(), e.getEmail(), e.getRole()));
     }
 
         public CadastroAdminResponse buscarPorId(Integer id){

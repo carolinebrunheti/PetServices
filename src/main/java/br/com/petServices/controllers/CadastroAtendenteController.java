@@ -1,6 +1,9 @@
 package br.com.petServices.controllers;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
+
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,8 +31,8 @@ public class CadastroAtendenteController {
     }
     
     @GetMapping()
-    public ResponseEntity<List<CadastroAtendenteResponse>> buscarTodos(){
-        return ResponseEntity.ok(cadastroAtendenteService.buscarTodos());
+    public ResponseEntity<PagedModel<CadastroAtendenteResponse>> buscarTodos(@PageableDefault(size = 10, sort = "id") Pageable pageable){
+        return ResponseEntity.ok(new PagedModel<>(cadastroAtendenteService.buscarTodos(pageable)));
     }
 
     @GetMapping("/{id}")
