@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import br.com.petServices.dtos.CadastroVeterinarioDTO;
 import br.com.petServices.dtos.CadastroVeterinarioResponse;
@@ -42,6 +43,8 @@ public class CadastroVeterinarioService {
         return new CadastroVeterinarioResponse(veterinario.getId(), veterinario.getNome(), veterinario.getCrm(), veterinario.getEspecialidade(), veterinario.getEmail(), veterinario.getRole());
     }
 
+    @Transactional
+
     public CadastroVeterinarioResponse salvar(CadastroVeterinarioDTO request){
         if (cadastroVeterinarioRepository.existsByEmail(request.email())) {
             throw new ConflitoException("Email ja cadastrado");
@@ -62,6 +65,8 @@ public class CadastroVeterinarioService {
         return new CadastroVeterinarioResponse(salvo.getId(), salvo.getNome(), salvo.getCrm(), salvo.getEspecialidade(), salvo.getEmail(), salvo.getRole());
     }
 
+    @Transactional
+
     public void removerVeterinario(Integer id){
         CadastroVeterinarioEntity veterinario = cadastroVeterinarioRepository.findById(id)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Veterinario nao existe"));
@@ -72,6 +77,7 @@ public class CadastroVeterinarioService {
     }
 
 //atualizar
+    @Transactional
     public CadastroVeterinarioResponse atualizarVeterinario(Integer id, CadastroVeterinarioDTO request){
         CadastroVeterinarioEntity veterinario = cadastroVeterinarioRepository.findById(id)
         .orElseThrow(() -> new RecursoNaoEncontradoException("Vterinario nao encontrado"));

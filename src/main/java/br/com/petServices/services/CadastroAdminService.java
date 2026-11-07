@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import br.com.petServices.dtos.CadastroAdminDTO;
 import br.com.petServices.dtos.CadastroAdminResponse;
@@ -45,6 +46,8 @@ public class CadastroAdminService {
              return new CadastroAdminResponse(admin.getId(), admin.getNome(), admin.getEmail(), admin.getRole());
         }
 
+    @Transactional
+
     public CadastroAdminResponse salvar(CadastroAdminDTO request){
         CadastroAdminEntity admin = new CadastroAdminEntity();
         admin.setNome(request.nome());
@@ -60,12 +63,16 @@ public class CadastroAdminService {
         return new CadastroAdminResponse(salvo.getId(), salvo.getNome(), salvo.getEmail(), salvo.getRole());
     }
 
+    @Transactional
+
     public void removerAdmin(Integer id){
         CadastroAdminEntity admin = cadastroAdminRepository.findById(id)
         .orElseThrow(() -> new RecursoNaoEncontradoException("Admin nao foi encontrado"));
         cadastroAdminRepository.delete(admin);
         usuarioEventProducer.publicar(UsuarioEvent.of(TipoEvento.REMOVIDO, admin.getId(), admin.getNome(), admin.getEmail(), admin.getRole()));
     }
+
+    @Transactional
 
     public CadastroAdminResponse atualizarAdmin(Integer id, CadastroAdminDTO request){
         CadastroAdminEntity admin = cadastroAdminRepository.findById(id)
