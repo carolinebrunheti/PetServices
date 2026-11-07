@@ -1,30 +1,23 @@
 package br.com.petServices.services.enums.evento;
 
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import br.com.petServices.config.KafkaTopicConfig;
+import br.com.petServices.outbox.OutboxService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-@Slf4j
+
+/**
+ * Nao envia direto para o Kafka: grava o evento na outbox, na mesma transacao do
+ * cadastro. Quem publica de verdade e o OutboxPublisher.
+ */
 @Component
 @RequiredArgsConstructor
 public class PetEventProducer {
 
-    private final KafkaTemplate<String, PetEvent> kafkaTemplate;
+    private final OutboxService outboxService;
 
     public void publicar(PetEvent evento) {
         String chave = "PET-" + evento.id();
-
-        kafkaTemplate.send(KafkaTopicConfig.PETS_EVENTOS, chave, evento)
-                .whenComplete((resultado, erro) -> {
-                    if (erro != null) {
-                        log.error("Falha ao publicar evento {}: {}", chave, erro.getMessage());
-                    } else {
-                        log.info("Evento {} {} publicado na partição {}",
-                                evento.tipoEvento(), chave,
-                                resultado.getRecordMetadata().partition());
-                    }
-                });
+        outboxService.registrar(KafkaTopicConfig.PETS_EVENTOS, chave, evento);
     }
 }

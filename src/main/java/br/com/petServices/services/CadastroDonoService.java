@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import br.com.petServices.dtos.CadastroDonoDTO;
 import br.com.petServices.dtos.CadastroDonoResponse;
@@ -45,6 +46,8 @@ public class CadastroDonoService {
 
     //kafka producer
 
+    @Transactional
+
     public CadastroDonoResponse cadastrar(CadastroDonoDTO request){
         if (cadastroDonoRepository.existsByEmail(request.email())) {
             throw new ConflitoException("Email ja cadastrado");
@@ -64,6 +67,8 @@ public class CadastroDonoService {
 
     //atualizar
 
+    @Transactional
+
     public CadastroDonoResponse atualizar(CadastroDonoDTO request, Integer id){
         CadastroDonoEntity dono = cadastroDonoRepository.findById(id)
         .orElseThrow(()-> new RecursoNaoEncontradoException("Dono nao encontrado"));
@@ -78,6 +83,8 @@ public class CadastroDonoService {
     }
 
     //remover
+
+    @Transactional
 
     public void removerDono(Integer id){
         CadastroDonoEntity dono = cadastroDonoRepository.findById(id)

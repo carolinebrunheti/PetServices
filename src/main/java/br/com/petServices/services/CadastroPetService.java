@@ -3,6 +3,7 @@ package br.com.petServices.services;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import br.com.petServices.dtos.CadastroPetDTO;
 import br.com.petServices.dtos.CadastroPetResponse;
@@ -46,6 +47,8 @@ public class CadastroPetService {
     }
 //salvarPet
 
+    @Transactional
+
     public CadastroPetResponse salvarPet(CadastroPetDTO request){
         CadastroDonoEntity dono = cadastroDonoRepository.findById(request.donoId())
             .orElseThrow(() -> new RecursoNaoEncontradoException("Dono não encontrado com o ID: " + request.donoId()));
@@ -67,6 +70,8 @@ public class CadastroPetService {
 
     //DeletarPet
 
+    @Transactional
+
     public void deletarPet(Integer id){
         CadastroPetEntity pet = cadastroPetRepository.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException("Pet nao encontrado"));
         cadastroPetRepository.delete(pet);
@@ -76,6 +81,8 @@ public class CadastroPetService {
     }
 
     //atualizar
+
+    @Transactional
 
     public CadastroPetResponse atualizarPet (@PathVariable Integer id, CadastroPetDTO request){
         CadastroPetEntity pet = cadastroPetRepository.findById(id)
