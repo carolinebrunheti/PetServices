@@ -2,14 +2,20 @@ package br.com.petServices.exceptions;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.sql.SQLException;
+import java.sql.SQLNonTransientConnectionException;
+import java.sql.SQLTransientConnectionException;
 
 import org.springframework.data.core.PropertyReferenceException;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -82,8 +88,47 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler (Exception.class)
     public ResponseEntity<ErroResponse> erroInesperado (Exception ex, HttpServletRequest request){
+        if (bancoIndisponivel(ex)) {
+            // sem stacktrace: com o banco fora, seriam centenas de linhas iguais por segundo
+            log.warn("Banco indisponivel em {}: {}", request.getRequestURI(), causaRaiz(ex));
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .header(HttpHeaders.RETRY_AFTER, "5")
+                    .body(montar(HttpStatus.SERVICE_UNAVAILABLE,
+                            "Servico temporariamente indisponivel. Tente novamente em alguns segundos.",
+                            request, List.of()).getBody());
+        }
         log.error("Erro inesperado em {}", request.getRequestURI(), ex);
         return montar(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno no servidor", request, List.of());
+    }
+
+    /**
+     * Banco fora do ar, ou sem conexao livre no pool depois do connection-timeout:
+     * e uma indisponibilidade temporaria, entao responde 503 (com Retry-After) e nao 500.
+     * Procura na cadeia de causas, porque o Spring/Hibernate embrulham o erro do driver.
+     */
+    static boolean bancoIndisponivel(Throwable ex) {
+        for (Throwable t = ex; t != null; t = (t.getCause() == t ? null : t.getCause())) {
+            if (t instanceof DataAccessResourceFailureException
+                    || t instanceof CannotCreateTransactionException
+                    || t instanceof SQLTransientConnectionException
+                    || t instanceof SQLNonTransientConnectionException) {
+                return true;
+            }
+            // SQLState 08xxx = erro de conexao; 57Pxx = servidor desligando/reiniciando
+            if (t instanceof SQLException sql && sql.getSQLState() != null
+                    && (sql.getSQLState().startsWith("08") || sql.getSQLState().startsWith("57P"))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String causaRaiz(Throwable ex) {
+        Throwable t = ex;
+        while (t.getCause() != null && t.getCause() != t) {
+            t = t.getCause();
+        }
+        return t.getClass().getSimpleName() + ": " + t.getMessage();
     }
 
     private ResponseEntity<ErroResponse> montar(HttpStatus status, String mensagem,
