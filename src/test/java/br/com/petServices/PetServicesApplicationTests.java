@@ -34,7 +34,7 @@ import br.com.petServices.repositories.CadastroAdminRepository;
  * e o cadastro grava na outbox, que o OutboxPublisher entrega de verdade no Kafka.
  */
 @SpringBootTest(properties = {
-        "jwt.secret=chave-de-teste-com-no-minimo-32-caracteres",
+        "jwt.secret=" + PetServicesApplicationTests.SEGREDO,
         "admin-inicial.email=" + PetServicesApplicationTests.ADMIN_EMAIL,
         "admin-inicial.senha=" + PetServicesApplicationTests.ADMIN_SENHA
 })
@@ -42,6 +42,7 @@ import br.com.petServices.repositories.CadastroAdminRepository;
 @Import(TestcontainersConfiguration.class)
 class PetServicesApplicationTests {
 
+    static final String SEGREDO = "chave-de-teste-com-no-minimo-32-caracteres";
     static final String ADMIN_EMAIL = "admin@teste.dev";
     static final String ADMIN_SENHA = "senha-do-admin-de-teste";
 

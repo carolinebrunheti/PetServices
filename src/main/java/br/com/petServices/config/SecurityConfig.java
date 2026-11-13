@@ -1,5 +1,10 @@
 package br.com.petServices.config;
 
+import br.com.petServices.services.enums.Role;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.JwtClaimValidator;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import java.util.Arrays;
 import java.nio.charset.StandardCharsets;
 
 import javax.crypto.SecretKey;
@@ -100,7 +105,15 @@ public class SecurityConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        return NimbusJwtDecoder.withSecretKey(chave).macAlgorithm(MacAlgorithm.HS256).build();
+        NimbusJwtDecoder decoder = NimbusJwtDecoder.withSecretKey(chave).macAlgorithm(MacAlgorithm.HS256).build();
+        // alem da assinatura e da validade, o token precisa ter as claims que a API usa:
+        // sem "id" ou com um "role" desconhecido ele e recusado com 401 (e nao estoura 500 no controller)
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+                JwtValidators.createDefault(),
+                new JwtClaimValidator<Object>("id", id -> id instanceof Number),
+                new JwtClaimValidator<Object>("role", role -> role != null
+                        && Arrays.stream(Role.values()).anyMatch(r -> r.name().equals(role)))));
+        return decoder;
     }
 
     // transforma a claim "role" do token (ex.: "ADMIN") na permissao ROLE_ADMIN usada pelo hasRole
