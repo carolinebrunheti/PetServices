@@ -27,10 +27,10 @@ jobs:
           java-version: "17"
           cache: maven
 
-      # o *ApplicationTests sobe a aplicacao inteira e precisa de Postgres e
-      # Kafka de verdade; os demais testes usam mocks
+      # todos os testes: o *ApplicationTests sobe Postgres e Kafka de verdade com
+      # Testcontainers (o runner ubuntu-latest ja tem Docker); os demais usam mocks
       - name: Testes
-        run: ./mvnw -B test -Dtest='!*ApplicationTests' -Dsurefire.failIfNoSpecifiedTests=false
+        run: ./mvnw -B test
 
   publicar:
     needs: testes
