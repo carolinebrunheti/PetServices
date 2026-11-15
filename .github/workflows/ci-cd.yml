@@ -1,6 +1,6 @@
 # CI: roda os testes em todo push e pull request.
-# CD: na main, gera a imagem, envia ao ACR e troca a versao no repositorio
-# PetServicesK8s; o workflow de la faz o deploy no AKS.
+# CD (DESATIVADO, ver o job publicar): na main, gerava a imagem, enviava ao ACR
+# e trocava a versao no repositorio PetServicesK8s, que fazia o deploy no AKS.
 name: CI/CD
 
 on:
@@ -32,9 +32,13 @@ jobs:
       - name: Testes
         run: ./mvnw -B test
 
+  # DESATIVADO em 2026-11-15: o AKS e o ACR foram apagados da Azure (fim da
+  # assinatura de testes). Para reativar, recrie a infraestrutura (README do
+  # PetServicesK8s), rode o configurar-github-oidc.sh e volte esta linha para:
+  #   if: github.event_name == 'push'
   publicar:
     needs: testes
-    if: github.event_name == 'push'
+    if: false
     runs-on: ubuntu-latest
     permissions:
       contents: read
