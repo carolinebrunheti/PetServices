@@ -48,7 +48,7 @@ class OutboxPublisherTest {
     }
 
     private OutboxEventoEntity evento(long id, int donoId) {
-        UsuarioEvent ev = UsuarioEvent.of(TipoEvento.CRIADO, donoId, "Carole", "carole@x.com", Role.TUTOR);
+        UsuarioEvent ev = UsuarioEvent.of(TipoEvento.CRIADO, donoId, "Carole", "carole@exemplo.com", Role.TUTOR);
         OutboxEventoEntity e = new OutboxEventoEntity(KafkaTopicConfig.USUARIOS_EVENTOS, "TUTOR-" + donoId,
                 UsuarioEvent.class.getName(), jsonMapper.writeValueAsString(ev));
         e.setId(id);

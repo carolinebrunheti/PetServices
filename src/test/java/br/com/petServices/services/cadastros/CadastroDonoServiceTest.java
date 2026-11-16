@@ -51,17 +51,17 @@ class CadastroDonoServiceTest {
     private CadastroDonoService cadastroDonoService;
 
     private CadastroDonoDTO novoDono(){
-        return new CadastroDonoDTO("Carole", "xuxubeleza@hotmail.com", "1234");
+        return new CadastroDonoDTO("Carole", "carole@exemplo.com", "1234");
     }
 
     private CadastroDonoEntity donoSalvo(){
-        return new CadastroDonoEntity(1, new ArrayList<>(), "Carole", "xuxubeleza@hotmail.com", "1234", Role.TUTOR);
+        return new CadastroDonoEntity(1, new ArrayList<>(), "Carole", "carole@exemplo.com", "1234", Role.TUTOR);
     }
 
     @Test
     void cadastrarNovo(){
         //arrange(preparar)
-        when(cadastroDonoRepository.existsByEmail("xuxubeleza@hotmail.com")).thenReturn(false);
+        when(cadastroDonoRepository.existsByEmail("carole@exemplo.com")).thenReturn(false);
         when(passwordEncoder.encode("1234")).thenReturn("hash-bcrypt");
         when(cadastroDonoRepository.save(any(CadastroDonoEntity.class))).thenReturn(donoSalvo());
 
@@ -88,7 +88,7 @@ class CadastroDonoServiceTest {
     @Test
     void naoDeveCadastrarComEmailDuplicado(){
         //arrange(preparar)
-        when(cadastroDonoRepository.existsByEmail("xuxubeleza@hotmail.com")).thenReturn(true);
+        when(cadastroDonoRepository.existsByEmail("carole@exemplo.com")).thenReturn(true);
 
         //act + assert
         ConflitoException erro = assertThrows(ConflitoException.class,
@@ -101,7 +101,7 @@ class CadastroDonoServiceTest {
 
     @Test 
     void atualizarDono(){
-        CadastroDonoDTO alterar = new CadastroDonoDTO("Joao", "joao@hotmail.com", "1234");
+        CadastroDonoDTO alterar = new CadastroDonoDTO("Joao", "joao@exemplo.com", "1234");
         when(cadastroDonoRepository.findById(1)).thenReturn(Optional.of(donoSalvo()));
         when(cadastroDonoRepository.save(any(CadastroDonoEntity.class)))
         .thenAnswer(invocacao -> invocacao.getArgument(0));
@@ -110,7 +110,7 @@ class CadastroDonoServiceTest {
 
         assertEquals(1, response.id());
         assertEquals("Joao", response.nome());
-        assertEquals("joao@hotmail.com", response.email());
+        assertEquals("joao@exemplo.com", response.email());
         assertEquals(Role.TUTOR, response.role());
         ArgumentCaptor<UsuarioEvent> eventoCaptor = ArgumentCaptor.forClass(UsuarioEvent.class);
         verify(usuarioEventProducer).publicar(eventoCaptor.capture());
@@ -153,7 +153,7 @@ class CadastroDonoServiceTest {
         Page<CadastroDonoResponse> resposta = cadastroDonoService.buscarTodos(pageable);
 
         assertEquals(1, resposta.getContent().size());
-        assertEquals("xuxubeleza@hotmail.com", resposta.getContent().get(0).email());
+        assertEquals("carole@exemplo.com", resposta.getContent().get(0).email());
 
     }
 
