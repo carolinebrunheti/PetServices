@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 env:
-  ACR: acrpetservicesf3c82b
+  ACR: acrpetservicesexemplo
   IMAGEM: petservices
 
 jobs:

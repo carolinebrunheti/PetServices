@@ -57,7 +57,7 @@ class CadastroPetServiceTest {
     private static final LocalDate NASCIMENTO = LocalDate.of(2022, 5, 10);
 
     private CadastroDonoEntity dono() {
-        return new CadastroDonoEntity(1, new ArrayList<>(), "Carole", "xuxubeleza@hotmail.com", "123456", Role.TUTOR);
+        return new CadastroDonoEntity(1, new ArrayList<>(), "Carole", "carole@exemplo.com", "123456", Role.TUTOR);
     }
 
     private CadastroPetDTO novoPet() {

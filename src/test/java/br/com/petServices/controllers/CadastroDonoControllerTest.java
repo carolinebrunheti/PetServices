@@ -41,14 +41,14 @@ public class CadastroDonoControllerTest {
     @Test
     void TestarCriarUsuario201 () throws Exception{
         //arrange
-        CadastroDonoResponse salvarUsuario = new CadastroDonoResponse(1, "Luan", "luan@hotmail.com", Role.TUTOR);
+        CadastroDonoResponse salvarUsuario = new CadastroDonoResponse(1, "Luan", "luan@exemplo.com", Role.TUTOR);
         when(cadastroDonoService.cadastrar(any(CadastroDonoDTO.class))).thenReturn(salvarUsuario);
 
         //corpo da requisicao postman
         String json = """
         {
         "nome": "Luan",
-        "email": "luan@hotmail.com",
+        "email": "luan@exemplo.com",
         "senha":"123456"}
         """;
 
@@ -61,7 +61,7 @@ public class CadastroDonoControllerTest {
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id").value(1))
         .andExpect(jsonPath("$.nome").value("Luan"))
-        .andExpect(jsonPath("$.email").value("luan@hotmail.com"))
+        .andExpect(jsonPath("$.email").value("luan@exemplo.com"))
         .andExpect(jsonPath("$.role").value("TUTOR"));
 
         verify(cadastroDonoService).cadastrar(any(CadastroDonoDTO.class));
@@ -70,7 +70,7 @@ public class CadastroDonoControllerTest {
     private static final String NOVO_DONO = """
         {
         "nome": "Luan",
-        "email": "luan@hotmail.com",
+        "email": "luan@exemplo.com",
         "senha":"123456"}
         """;
 
